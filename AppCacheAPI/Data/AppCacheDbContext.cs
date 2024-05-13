@@ -3,11 +3,12 @@
 using System;
 using System.Collections.Generic;
 using AppCacheAPI.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppCacheAPI.Data;
 
-public partial class AppCacheDbContext : DbContext
+public partial class AppCacheDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppCacheDbContext(DbContextOptions<AppCacheDbContext> options)
         : base(options)
