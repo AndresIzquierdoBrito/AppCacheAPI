@@ -16,6 +16,8 @@ public partial class AppCacheDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public virtual DbSet<Idea> Ideas { get; set; }
+    public virtual DbSet<Category> Categories { get; set; }
+    public virtual DbSet<CategoryIdea> CategoryIdeas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +27,19 @@ public partial class AppCacheDbContext : IdentityDbContext<ApplicationUser>
         {
             entity.HasKey(e => e.IdeaId).HasName("idea_pkey");
         });
+
+        modelBuilder.Entity<CategoryIdea>()
+            .HasKey(ci => new { ci.CategoryId, ci.IdeaId });
+
+        modelBuilder.Entity<CategoryIdea>()
+            .HasOne(ci => ci.Category)
+            .WithMany(c => c.CategoryIdeas)
+            .HasForeignKey(ci => ci.CategoryId);
+
+        modelBuilder.Entity<CategoryIdea>()
+            .HasOne(ci => ci.Idea)
+            .WithMany(i => i.CategoryIdeas)
+            .HasForeignKey(ci => ci.IdeaId);
 
         OnModelCreatingPartial(modelBuilder);
     }

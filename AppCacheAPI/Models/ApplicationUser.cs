@@ -8,5 +8,6 @@ namespace AppCacheAPI.Models
 
         public virtual ICollection<Idea>? Ideas { get; set; }
 
+        public virtual ICollection<Category>? Categories { get; set; }
     }
 }
