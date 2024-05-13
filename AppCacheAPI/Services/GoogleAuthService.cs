@@ -8,14 +8,11 @@ namespace AppCacheAPI.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly ILogger<GoogleAuthService> _logger;
 
-        public GoogleAuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
-            ILogger<GoogleAuthService> logger)
+        public GoogleAuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _logger = logger;
         }
 
 
@@ -23,8 +20,6 @@ namespace AppCacheAPI.Services
         {
             var name = principal.FindFirstValue(ClaimTypes.Name);
             var email = principal.FindFirstValue(ClaimTypes.Email);
-            _logger.LogInformation("Email: {Email}", email);
-            _logger.LogInformation("Name: {Name}", name);
 
             if (email != null)
             {
