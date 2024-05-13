@@ -1,6 +1,9 @@
 using AppCacheAPI.Data;
 using AppCacheAPI.Models;
+using AppCacheAPI.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -8,15 +11,51 @@ var services = builder.Services;
 
 // Add services to the container.
 
+services.AddControllers();
+
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 
 services.AddDbContext<AppCacheDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "UserTokenCookies";
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.Redirect("/login");
+            return Task.CompletedTask;
+        };
+    })
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
+        googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+        googleOptions.Events.OnTicketReceived = async context =>
+        {
+            var authService = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthService>();
+            await authService.CreateOrGetUser(context.Principal);
+        };
+    });
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddEndpointsApiExplorer();
+
+services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "AppCache API", Version = "v1" });
+
+});
+services.AddEndpointsApiExplorer();
+
+
+services.AddScoped<GoogleAuthService>();
+
 
 var app = builder.Build();
 
