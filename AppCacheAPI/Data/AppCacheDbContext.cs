@@ -19,6 +19,8 @@ public partial class AppCacheDbContext : IdentityDbContext<ApplicationUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Idea>(entity =>
         {
             entity.HasKey(e => e.IdeaId).HasName("idea_pkey");

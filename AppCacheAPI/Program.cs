@@ -18,6 +18,8 @@ var connectionString = configuration.GetConnectionString("DefaultConnection");
 services.AddDbContext<AppCacheDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+services.AddIdentityApiEndpoints<ApplicationUser>().AddEntityFrameworkStores<AppCacheDbContext>();
+
 services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -35,26 +37,46 @@ services.AddAuthentication(options =>
     })
     .AddGoogle(googleOptions =>
     {
-        googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
-        googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+        googleOptions.ClientId = configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException();
+        googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"] ?? throw new InvalidOperationException();
         googleOptions.Events.OnTicketReceived = async context =>
         {
             var authService = context.HttpContext.RequestServices.GetRequiredService<GoogleAuthService>();
-            await authService.CreateOrGetUser(context.Principal);
+            await authService.CreateOrGetUser(context.Principal ?? throw new InvalidOperationException());
         };
     });
 
 services.AddEndpointsApiExplorer();
 
-services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "AppCache API", Version = "v1" });
-
-});
-services.AddEndpointsApiExplorer();
-
-
 services.AddScoped<GoogleAuthService>();
+
+services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "AppCache API", Version = "v1" });
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+});
 
 
 var app = builder.Build();

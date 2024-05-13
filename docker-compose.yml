@@ -1,0 +1,28 @@
+version: '3.4'
+networks:
+  appcache-network:
+    driver: bridge 
+services:
+  appcacheapi:
+    image: ${DOCKER_REGISTRY-}appcacheapi
+    build:
+      context: .
+      dockerfile: AppCacheAPI/Dockerfile
+    networks:
+      - appcache-network  
+  postgre-db:
+    image: "postgres:16.3"
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "appcache"
+    ports:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - appcache-network  
+volumes:
+  postgres_data:  

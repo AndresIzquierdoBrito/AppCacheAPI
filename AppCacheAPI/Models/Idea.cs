@@ -30,4 +30,6 @@ public partial class Idea
 
     [Column("user_id")]
     public string UserId { get; set; }
+
+    public virtual ApplicationUser User { get; set; }
 }

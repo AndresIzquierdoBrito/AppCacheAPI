@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppCacheAPI", "AppCacheAPI\AppCacheAPI.csproj", "{5C846E43-97D3-4215-B16E-A4BA30BAB076}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppCacheAPI", "AppCacheAPI\AppCacheAPI.csproj", "{5C846E43-97D3-4215-B16E-A4BA30BAB076}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{6B2D903B-B428-4E48-98D0-8AF1FEE9AE7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5C846E43-97D3-4215-B16E-A4BA30BAB076}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C846E43-97D3-4215-B16E-A4BA30BAB076}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C846E43-97D3-4215-B16E-A4BA30BAB076}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B2D903B-B428-4E48-98D0-8AF1FEE9AE7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B2D903B-B428-4E48-98D0-8AF1FEE9AE7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B2D903B-B428-4E48-98D0-8AF1FEE9AE7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B2D903B-B428-4E48-98D0-8AF1FEE9AE7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
