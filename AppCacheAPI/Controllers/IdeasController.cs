@@ -1,5 +1,6 @@
 ﻿using AppCacheAPI.Data;
 using AppCacheAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AppCacheAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class IdeasController(AppCacheDbContext context, UserManager<ApplicationUser> userManager)
         : ControllerBase

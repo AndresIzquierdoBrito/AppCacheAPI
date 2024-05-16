@@ -2,6 +2,7 @@ using AppCacheAPI.Data;
 using AppCacheAPI.Models;
 using AppCacheAPI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -13,28 +14,29 @@ var services = builder.Services;
 
 services.AddControllers();
 
+services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
+
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 
 services.AddDbContext<AppCacheDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-services.AddIdentityApiEndpoints<ApplicationUser>().AddEntityFrameworkStores<AppCacheDbContext>();
+services.AddAuthorization();
 
-services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        //options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    })
-    .AddCookie(options =>
-    {
-        options.Cookie.Name = "UserTokenCookies";
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.Redirect("/login");
-            return Task.CompletedTask;
-        };
-    })
+services.AddIdentityApiEndpoints<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<AppCacheDbContext>();
+
+services.AddAuthentication()
+    
     .AddGoogle(googleOptions =>
     {
         googleOptions.ClientId = configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException();
@@ -45,6 +47,43 @@ services.AddAuthentication(options =>
             await authService.CreateOrGetUser(context.Principal ?? throw new InvalidOperationException());
         };
     });
+
+services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    options.SignIn.RequireConfirmedAccount = false;
+    options.ClaimsIdentity.RoleClaimType = "User";
+});
+
+services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "AuthCookie";
+    options.Cookie.HttpOnly = true;
+    options.LoginPath = "/login";
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.AccessDeniedPath = "/accessdenied";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToLogout = context =>
+    {
+        context.Response.StatusCode = 200;
+        return Task.CompletedTask;
+    };
+
+});
 
 services.AddEndpointsApiExplorer();
 
@@ -92,9 +131,18 @@ app.MapIdentityApi<ApplicationUser>();
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowSpecificOrigin");
+
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapPost("/logout", async (HttpContext context, SignInManager<ApplicationUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    context.Response.StatusCode = 200;
+    await context.Response.WriteAsync("Logged out successfully");
+}).RequireAuthorization();
 
 app.MapControllers();
 
