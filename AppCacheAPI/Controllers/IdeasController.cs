@@ -76,13 +76,32 @@ namespace AppCacheAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Ideas
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+      // POST: api/Ideas
         [HttpPost]
-        public async Task<ActionResult<Idea>> PostIdea(Idea idea)
+        public async Task<ActionResult<Idea>> PostIdea(IdeaDTO ideaDTO)
         {
-            _context.Ideas.Add(idea);
-            await _context.SaveChangesAsync();
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return Unauthorized("User is not authenticated");
+            }
+
+            var idea = new Idea
+            {
+                Title = ideaDTO.Title,
+                Description = ideaDTO.Description,
+                UserId = userId
+            };
+
+            try
+            {
+                _context.Ideas.Add(idea);
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error saving the idea");
+            }
 
             return CreatedAtAction("GetIdea", new { id = idea.IdeaId }, idea);
         }

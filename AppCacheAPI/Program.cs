@@ -61,7 +61,7 @@ services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedAccount = false;
     options.ClaimsIdentity.RoleClaimType = "User";
     options.User.RequireUniqueEmail = true;
-    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    //options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 });
 services.ConfigureExternalCookie(options =>
 {

@@ -21,8 +21,24 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - appcache_db:/var/lib/postgresql/data
     networks:
-      - appcache-network  
+      - appcache-network
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: andres.izbri@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: Password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin 
+    networks:
+      - appcache-network
 volumes:
-  postgres_data:  
+  appcache_db:
+    external: true
+  pgadmin-data:
+  
