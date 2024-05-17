@@ -11,11 +11,16 @@ namespace AppCacheAPI.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
-    public class IdeasController(AppCacheDbContext context, UserManager<ApplicationUser> userManager)
-        : ControllerBase
+    public class IdeasController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager = userManager;
-        private readonly AppCacheDbContext _context = context;
+        private readonly AppCacheDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public IdeasController(AppCacheDbContext context, UserManager<ApplicationUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
 
         // GET: api/Ideas
         [HttpGet]
