@@ -1,16 +1,15 @@
 using AppCacheAPI.Data;
 using AppCacheAPI.Models;
 using AppCacheAPI.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var services = builder.Services;
 
-// Add services to the container.
 
 services.AddControllers();
 
@@ -35,8 +34,12 @@ services.AddAuthorization();
 
 services.AddIdentityApiEndpoints<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<AppCacheDbContext>();
 
-services.AddAuthentication()
-    
+services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddCookie()
     .AddGoogle(googleOptions =>
     {
         googleOptions.ClientId = configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException();
@@ -50,39 +53,34 @@ services.AddAuthentication()
 
 services.Configure<IdentityOptions>(options =>
 {
-    options.Password.RequireDigit = false;
+    options.Password.RequireDigit = true;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 6;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 8;
     options.SignIn.RequireConfirmedAccount = false;
     options.ClaimsIdentity.RoleClaimType = "User";
+    options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 });
-
+services.ConfigureExternalCookie(options =>
+{
+    options.Cookie.Name = "ExternalAuthCookie";
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.None; // Same site shouldn't be none in production
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = "AuthCookie";
     options.Cookie.HttpOnly = true;
-    options.LoginPath = "/login";
-    options.Cookie.SameSite = SameSiteMode.None;
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
+    options.LoginPath = "/";
+    options.Cookie.SameSite = SameSiteMode.None; // Same site shouldn't be none in production
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.AccessDeniedPath = "/accessdenied";
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.StatusCode = 401;
-        return Task.CompletedTask;
-    };
-    options.Events.OnRedirectToAccessDenied = context =>
-    {
-        context.Response.StatusCode = 403;
-        return Task.CompletedTask;
-    };
-    options.Events.OnRedirectToLogout = context =>
-    {
-        context.Response.StatusCode = 200;
-        return Task.CompletedTask;
-    };
-
 });
 
 services.AddEndpointsApiExplorer();
@@ -120,6 +118,13 @@ services.AddSwaggerGen(option =>
 
 var app = builder.Build();
 
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<AppCacheDbContext>();
+//    dbContext.Database.Migrate();
+//}
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -127,7 +132,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapIdentityApi<ApplicationUser>();
+//app.MapIdentityApi<ApplicationUser>();
 
 app.UseHttpsRedirection();
 
@@ -136,13 +141,6 @@ app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 
 app.UseAuthorization();
-
-app.MapPost("/logout", async (HttpContext context, SignInManager<ApplicationUser> signInManager) =>
-{
-    await signInManager.SignOutAsync();
-    context.Response.StatusCode = 200;
-    await context.Response.WriteAsync("Logged out successfully");
-}).RequireAuthorization();
 
 app.MapControllers();
 

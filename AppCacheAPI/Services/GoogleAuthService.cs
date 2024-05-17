@@ -6,15 +6,19 @@ namespace AppCacheAPI.Services
 {
     public class GoogleAuthService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly SignInManager<ApplicationUser> signInManager;
+        private readonly RoleManager<IdentityRole> roleManager;
 
-        public GoogleAuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public GoogleAuthService(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
+            this.roleManager = roleManager;
         }
-
 
         public async Task CreateOrGetUser(ClaimsPrincipal principal)
         {
@@ -23,25 +27,30 @@ namespace AppCacheAPI.Services
 
             if (email != null)
             {
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
                     user = new ApplicationUser
                     {
-                        UserName = email,
+                        UserName = name,
                         Email = email,
                         IsGoogleUser = true
                     };
-                    var result = await _userManager.CreateAsync(user);
+                    var result = await userManager.CreateAsync(user);
                     if (!result.Succeeded)
                     {
-                        // Handle the error
                         throw new Exception("Failed to create user");
                     }
-                }
 
-                // Sign in the user
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                    const string userRole = "User";
+                    if (!await roleManager.RoleExistsAsync(userRole))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(userRole));
+                    }
+
+                    await userManager.AddToRoleAsync(user, userRole);
+                }
+                await signInManager.SignInAsync(user, isPersistent: false);
             }
         }
     }   

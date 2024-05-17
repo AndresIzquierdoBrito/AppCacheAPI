@@ -2,7 +2,7 @@
 
 namespace AppCacheAPI.Models
 {
-    public class UserCredentials
+    public class LoginCredentials
     {
         [Required]
         [EmailAddress]
