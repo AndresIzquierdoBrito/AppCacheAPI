@@ -10,7 +10,7 @@ using AppCacheAPI.Data;
 
 namespace AppCacheAPI.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -104,7 +104,7 @@ namespace AppCacheAPI.Controllers
         [HttpGet("login-google")]
         public IActionResult LoginWithGoogle()
         {
-            var props = new AuthenticationProperties { RedirectUri = "account/signin-google" };
+            var props = new AuthenticationProperties { RedirectUri = "https://appcache.izbri.com/api/account/signin-google" };
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
         }
 
