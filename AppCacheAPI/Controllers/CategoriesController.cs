@@ -8,26 +8,37 @@ using Microsoft.EntityFrameworkCore;
 using AppCacheAPI.Data;
 using AppCacheAPI.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace AppCacheAPI.Controllers
 {
+
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
-    public class CategoriesController(AppCacheDbContext context) : ControllerBase
+    public class CategoriesController : ControllerBase
     {
+        private readonly AppCacheDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public CategoriesController(AppCacheDbContext context, UserManager<ApplicationUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+
         // GET: api/Categories
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-            return await context.Categories.ToListAsync();
+            return await _context.Categories.ToListAsync();
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
-            var category = await context.Categories.FindAsync(id);
+            var category = await _context.Categories.FindAsync(id);
 
             if (category == null)
             {
@@ -47,11 +58,11 @@ namespace AppCacheAPI.Controllers
                 return BadRequest();
             }
 
-            context.Entry(category).State = EntityState.Modified;
+            _context.Entry(category).State = EntityState.Modified;
 
             try
             {
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -73,8 +84,8 @@ namespace AppCacheAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Category>> PostCategory(Category category)
         {
-            context.Categories.Add(category);
-            await context.SaveChangesAsync();
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetCategory", new { id = category.CategoryId }, category);
         }
@@ -83,21 +94,26 @@ namespace AppCacheAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var category = await context.Categories.FindAsync(id);
+            
+            var category = await _context.Categories.FindAsync(id);
             if (category == null)
             {
                 return NotFound();
             }
 
-            context.Categories.Remove(category);
-            await context.SaveChangesAsync();
+            if (category.Title == "ALLIDEAS")
+            {
+                return BadRequest("Cannot delete the default category");
+            }
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool CategoryExists(int id)
         {
-            return context.Categories.Any(e => e.CategoryId == id);
+            return _context.Categories.Any(e => e.CategoryId == id);
         }
     }
 }

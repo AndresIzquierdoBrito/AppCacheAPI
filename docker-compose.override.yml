@@ -6,7 +6,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-#      - ConnectionStrings_DefaultConnection=Host=db;Port=5432;Database=appcache;Username=postgres;Password=postgres
+      - ConnectionStrings_DefaultConnection=Host=db;Port=5432;Database=appcache;Username=postgres;Password=postgres
     ports:
       - "7155:8080"
       - "7156:8081"

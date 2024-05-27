@@ -28,6 +28,7 @@ public partial class Idea
     [StringLength(50)]
     public string Color { get; set; }
 
+
     [Column("user_id")]
     public string UserId { get; set; }
 

@@ -11,6 +11,9 @@ namespace AppCacheAPI.Models
         [Column("idea_id")]
         public int IdeaId { get; set; }
 
+        [Column("order")]
+        public int Order { get; set; }
+
         public virtual Category Category { get; set; }
 
         public virtual Idea Idea { get; set; }

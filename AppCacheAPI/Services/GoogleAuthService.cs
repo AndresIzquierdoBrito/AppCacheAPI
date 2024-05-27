@@ -1,5 +1,7 @@
-﻿using AppCacheAPI.Models;
+﻿using AppCacheAPI.Data;
+using AppCacheAPI.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AppCacheAPI.Services
@@ -9,15 +11,19 @@ namespace AppCacheAPI.Services
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly AppCacheDbContext context;
 
         public GoogleAuthService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            AppCacheDbContext context)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.roleManager = roleManager;
+            this.context = context;
+
         }
 
         public async Task CreateOrGetUser(ClaimsPrincipal principal)
@@ -49,6 +55,15 @@ namespace AppCacheAPI.Services
                     }
 
                     await userManager.AddToRoleAsync(user, userRole);
+
+                    var category = new Category
+                    {
+                        Title = "ALLIDEAS",
+                        UserId = user.Id
+                    };
+
+                    context.Categories.Add(category);
+                    await context.SaveChangesAsync();
                 }
                 await signInManager.SignInAsync(user, isPersistent: false);
             }

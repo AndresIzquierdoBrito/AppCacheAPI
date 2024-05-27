@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using AppCacheAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using AppCacheAPI.Data;
 
 namespace AppCacheAPI.Controllers
 {
@@ -16,23 +17,23 @@ namespace AppCacheAPI.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly GoogleAuthService _authService;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly AppCacheDbContext _context;
 
-        public AccountController(UserManager<ApplicationUser> userManager, GoogleAuthService authService, RoleManager<IdentityRole> roleManager)
+        public AccountController(
+            UserManager<ApplicationUser> userManager, 
+            GoogleAuthService authService, 
+            RoleManager<IdentityRole> roleManager,
+            AppCacheDbContext context)
         {
             _userManager = userManager;
             _authService = authService;
             _roleManager = roleManager;
+            _context = context;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterCredentials model)
         {
-            //var existingUser = await _userManager.FindByEmailAsync(model.Email);
-            //if (existingUser != null)
-            //{
-            //    return BadRequest("Email already in use.");
-            //}
-
             var user = new ApplicationUser { UserName = model.UserName, Email = model.Email };
             var result = await _userManager.CreateAsync(user, model.Password);
 
@@ -43,6 +44,14 @@ namespace AppCacheAPI.Controllers
             {
                 await _roleManager.CreateAsync(new IdentityRole(userRole));
             }
+            var category = new Category
+            {
+                Title = "ALLIDEAS",
+                UserId = user.Id
+            };
+
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
 
             await _userManager.AddToRoleAsync(user, userRole);
 

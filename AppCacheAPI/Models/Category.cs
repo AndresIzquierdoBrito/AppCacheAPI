@@ -16,11 +16,11 @@ namespace AppCacheAPI.Models
         public string Title { get; set; }
 
         [Column("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Column("color")]
         [StringLength(50)]
-        public string Color { get; set; }
+        public string? Color { get; set; }
 
         [Column("user_id")]
         public string UserId { get; set; }

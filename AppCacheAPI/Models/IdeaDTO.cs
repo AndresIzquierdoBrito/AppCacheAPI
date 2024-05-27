@@ -10,13 +10,18 @@ namespace AppCacheAPI.Models;
 
 public partial class IdeaDTO
 {
+    public int? IdeaId { get; set; }
     [Required]
     [StringLength(255)]
     public string Title { get; set; }
+
+    public int? CategoryId { get; set; }
 
     [StringLength(5000)]
     public string Description { get; set; }
 
     [StringLength(7)]
     public string Color { get; set; }
+
+    public int Order { get; set; }
 }

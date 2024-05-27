@@ -34,12 +34,21 @@ public partial class AppCacheDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<CategoryIdea>()
             .HasOne(ci => ci.Category)
             .WithMany(c => c.CategoryIdeas)
-            .HasForeignKey(ci => ci.CategoryId);
+            .HasForeignKey(ci => ci.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<CategoryIdea>()
             .HasOne(ci => ci.Idea)
             .WithMany(i => i.CategoryIdeas)
-            .HasForeignKey(ci => ci.IdeaId);
+            .HasForeignKey(ci => ci.IdeaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+        modelBuilder.Entity<Category>()
+            .HasOne(c => c.User)
+            .WithMany(u => u.Categories)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         OnModelCreatingPartial(modelBuilder);
     }
